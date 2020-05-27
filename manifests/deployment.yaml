@@ -1,0 +1,45 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: demo-api-1
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: demo-api-1
+        version: 0.0.1
+    spec:
+      containers:
+        - name: demo-api-1
+          image: mymtnregistry.azurecr.io/transaction-service:image_version
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 250m
+            limits:
+              cpu: 500m
+          env:
+            - name: API_PORT
+              value: "80"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-api-1
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      name: http
+  selector:
+    app: demo-api-1
